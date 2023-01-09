@@ -1,31 +1,83 @@
 import prisma from '../services/prisma';
 import { Request, Response } from 'express';
+import { NoEntryError } from '../core/ApiError';
+import { SuccessResponse } from '../core/ApiResponse';
+import asyncHandler from '../core/asyncHandler';
 
-export const userController = {
-  async index(req: Request, res: Response) {
-    const users = await prisma.user.findMany();
-    return res.json(users);
-  },
+export const getUser = asyncHandler(
+  async (req: Request, res: Response): Promise<Response> => {
+    const userId = req.params.userId;
 
-  async createUser(req: Request, res: Response) {
-    const userData = req.body;
-
-    const user = await prisma.user.create({
-      data: {
-        email: userData.email,
-        password: userData.password,
+    const user = await prisma.user.findUnique({
+      where: {
+        id: Number(userId),
       },
     });
-    return res.json({ user: user });
-  },
+    if (!user) throw new NoEntryError('User not found');
 
-  async findUser(req: Request, res: Response) {
-    const paramId = req.params.id
+    return new SuccessResponse('User profile', user).send(res);
+  }
+);
+
+export const getAllUsers = asyncHandler(
+  async (req: Request, res: Response): Promise<Response> => {
+    const userId = req.params.userId;
+
+    const users = await prisma.user.findMany();
+
+    return new SuccessResponse('All users', users).send(res);
+  }
+);
+
+export const updateUser = asyncHandler(
+  async (req: Request, res: Response): Promise<Response> => {
+    const userId = req.params.userId;
+    const { email, password, fullname } = req.body;
+
+    let user = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+    if (!user) throw new NoEntryError('User not found');
+
+    await prisma.user.update({
+      data: {
+        email,
+        fullname,
+      },
+      where: {
+        id: Number(userId),
+      },
+    });
+
+    user = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    return new SuccessResponse('User updated successfully!', user).send(res);
+  }
+);
+
+export const deleteUser = asyncHandler(
+  async (req: Request, res: Response): Promise<Response> => {
+    const userId = req.params.userId;
+
     const user = await prisma.user.findUnique({
-        where: {
-            id: Number(paramId),
-        }
-      }  );
-    return res.json(user);
-  },
-};
+      where: {
+        id: Number(userId),
+      },
+    });
+    if (!user) throw new NoEntryError('User not found');
+
+    await prisma.user.delete({
+      where: {
+        id: Number(userId),
+      },
+    });
+
+    return new SuccessResponse('User deleted!', user).send(res);
+  }
+);

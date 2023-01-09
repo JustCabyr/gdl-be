@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import { ApiError, InternalError, NotFoundError } from './core/ApiError';
-import { userRoutes } from './routes';
+import { userRouter } from './routes';
+import { authRouter } from './routes';
 
 class App {
   public server;
@@ -19,7 +20,8 @@ class App {
   }
 
   routes() {
-    this.server.use('/api/users', userRoutes);
+    this.server.use('/api/users', userRouter);
+    this.server.use('/api/auth', authRouter);
   }
 
   notfounderror() {

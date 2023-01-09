@@ -1,10 +1,17 @@
-import { Router } from "express";
-import { userController } from "../controlelrs/user.controller";
+import { Router } from 'express';
+import {
+  getAllUsers,
+  getUser,
+  updateUser,
+  deleteUser,
+} from '../controlelrs/user.controller';
 
-const userRoutes = Router();
+const userRouter = Router();
 
-userRoutes.get('/', userController.index);
-userRoutes.post('/', userController.createUser);
-userRoutes.get('/:id', userController.findUser);
+userRouter.get('/', getAllUsers);
+userRouter
+  .get('/:userId', getUser)
+  .put('/:userId', updateUser)
+  .delete('/:userId', deleteUser);
 
-export default userRoutes
+export default userRouter;
