@@ -1,5 +1,6 @@
-import express from 'express';
-import { userRoutes } from "./routes"
+import express, { Request, Response, NextFunction } from 'express';
+import { ApiError, InternalError, NotFoundError } from './core/ApiError';
+import { userRoutes } from './routes';
 
 class App {
   public server;
@@ -9,6 +10,8 @@ class App {
 
     this.middlewares();
     this.routes();
+    this.notfounderror();
+    this.errorhandler();
   }
 
   middlewares() {
@@ -16,7 +19,23 @@ class App {
   }
 
   routes() {
-    this.server.use("/api/users", userRoutes);
+    this.server.use('/api/users', userRoutes);
+  }
+
+  notfounderror() {
+    this.server.use((req, res, next) => next(new NotFoundError()));
+  }
+
+  errorhandler() {
+    this.server.use(
+      (err: Error, req: Request, res: Response, next: NextFunction) => {
+        if (err instanceof ApiError) {
+          ApiError.handle(err, res);
+        } else {
+          ApiError.handle(new InternalError(), res);
+        }
+      }
+    );
   }
 }
 
